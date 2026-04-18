@@ -14,5 +14,5 @@ Sukurti veikiančią automobilių nuomos valdymo sistemą, kuri pademonstruotų 
 2. Atsisiųskite projekto failus į vieną aplanką.
 3. Atidarykite terminalą tame aplanke ir paleiskite:
    ```bash
-   python main.py
+   python Car_reservation.py
 
