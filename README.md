@@ -84,6 +84,9 @@ class System:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._instance.users = []
+            cls._instance.vehicles = []
+            cls._instance.reservations = []
         return cls._instance
 ```
 
