@@ -1,40 +1,10 @@
 import os
 from abc import ABC, abstractmethod
 
-class User:
-    def __init__(self, name, email, password):
-        self._name = name
-        self._email = email
-        self._password = password
-        self._reservations = []
 
-    def check_login(self, email, password):
-        return self._email == email and self._password == password
-
-    def reserve(self, vehicle, days):
-        reservation = Reservation(self, vehicle, days)
-        self._reservations.append(reservation)
-        return reservation
-
-    def show_reservations(self):
-        print("\n=== MY RESERVATIONS ===")
-        print("-" * 45)
-
-        if not self._reservations:
-            print("No reservations")
-            return
-
-        for r in self._reservations:
-            print(f"{r.vehicle.get_info():<20} | {r.days} days | {r.total}€")
-
-        print("-" * 45)
-
-    def get_name(self):
-        return self._name
-
-class Vehicle(ABC):
+class Vehicle(ABC): # Abstraction - abstract class Vehicle
     def __init__(self, brand, model, price):
-        self._brand = brand
+        self._brand = brand   # Encapsulation - protected attributes
         self._model = model
         self._price = price
 
@@ -43,28 +13,56 @@ class Vehicle(ABC):
         pass
 
     def get_info(self):
-        return f"{self._brand} {self._model}"
+        return f"{self._brand} {self._model} ({self._price}€/day)"
 
 
-class Car(Vehicle):
+class Car(Vehicle): # Inheritance - Car inherits from Vehicle
     def get_price(self, days):
         return self._price * days
 
 
-class LuxuryCar(Vehicle):
+class LuxuryCar(Vehicle): # Inheritance + Polymorphism - LuxuryCar overrides get_price
     def get_price(self, days):
         total = self._price * days
         if days >= 3:
-            total *= 0.9
+            total = total * 0.9  # 10% discount
         return total
 
-class Reservation:
+
+class User:
+    def __init__(self, name, email, password):
+        self._name = name        # Encapsulation
+        self._email = email
+        self._password = password
+        self._reservations = []  # Aggregation - user has reservations
+
+    def check_login(self, email, password):
+        return self._email == email and self._password == password
+
+    def get_name(self):
+        return self._name
+
+    def add_reservation(self, reservation):
+        self._reservations.append(reservation)
+
+    def show_reservations(self):
+        print("\n=== MY RESERVATIONS ===")
+        if len(self._reservations) == 0:
+            print("No reservations yet.")
+            return
+        for r in self._reservations:
+            print(f"  {r.vehicle.get_info()} | {r.days} days | Total: {r.total}€")
+
+
+class Reservation: # Composition
     def __init__(self, user, vehicle, days):
         self.user = user
         self.vehicle = vehicle
         self.days = days
         self.total = vehicle.get_price(days)
 
+
+# Singleton pattern - only one System can exist
 class System:
     _instance = None
 
@@ -76,105 +74,123 @@ class System:
             cls._instance.reservations = []
         return cls._instance
 
-    def register(self, name, email, password):
-        self.users.append(User(name, email, password))
-        print("!!!Registered successfully!!!")
+    def add_user(self, name, email, password):
+        user = User(name, email, password)
+        self.users.append(user)
+        print("Registered successfully!")
 
     def login(self, email, password):
-        for u in self.users:
-            if u.check_login(email, password):
-                print("!!!Login successful!!!")
-                return u
-        print("!!!Wrong login!!!")
+        for user in self.users:
+            if user.check_login(email, password):
+                print("Login successful!")
+                return user
+        print("Wrong email or password.")
         return None
 
-    def add_vehicle(self, v):
-        self.vehicles.append(v)
+    def add_vehicle(self, vehicle):
+        self.vehicles.append(vehicle)
 
     def show_vehicles(self):
         print("\n=== AVAILABLE CARS ===")
-        print("-" * 40)
+        for i, vehicle in enumerate(self.vehicles, start=1):
+            print(f"  {i}. {vehicle.get_info()}")
 
-        for i, v in enumerate(self.vehicles, start=1):
-            print(f"{i}. {v.get_info():<20}")
+    def add_reservation(self, reservation):
+        self.reservations.append(reservation)
 
-        print("-" * 40)
-
-    def save(self):
-        path = os.path.join(os.path.dirname(__file__), "data.txt")
-
-        with open(path, "w") as f:
-            if not self.reservations:
+    def save_to_file(self):
+        with open("data.txt", "w") as f:
+            if len(self.reservations) == 0:
                 f.write("No reservations\n")
             else:
                 for r in self.reservations:
                     f.write(f"{r.user.get_name()},{r.vehicle.get_info()},{r.days},{r.total}\n")
+        print("Data saved to data.txt")
 
-        print(f"FILE Saved to: {path}")
+    def load_from_file(self):
+        if not os.path.exists("data.txt"):
+            print("No saved file found.")
+            return
+        print("\n=== SAVED RESERVATIONS ===")
+        with open("data.txt", "r") as f:
+            lines = f.readlines()
+        for line in lines:
+            print(" ", line.strip())
+
 
 system = System()
-
-# Cars
+system.add_vehicle(Car("Toyota", "Corolla", 45))
 system.add_vehicle(Car("BMW", "320", 50))
 system.add_vehicle(LuxuryCar("Mercedes", "S", 120))
-system.add_vehicle(Car("Toyota", "Corolla", 45))
-system.add_vehicle(Car("Toyota", "Prius", 54))
-system.add_vehicle(LuxuryCar("BMW", "X5", 75))
 system.add_vehicle(LuxuryCar("Audi", "A8", 110))
 
 current_user = None
 
+# --- Main menu ---
 while True:
+
     os.system('cls' if os.name == 'nt' else 'clear')
 
-    print("=" * 35)
-    print("CAR RENTAL SYSTEM")
-    print("=" * 35)
+    print("\n=== CAR RENTAL SYSTEM ===")
     print("1. Register")
     print("2. Login")
     print("3. Show cars")
-    print("4. Rent car")
+    print("4. Rent a car")
     print("5. My reservations")
     print("6. Save")
-    print("7. Exit")
-    print("=" * 35)
+    print("7. Load saved data")
+    print("8. Exit")
 
-    c = input("Choose: ")
+    choice = input("Choose: ")
 
-    if c == "1":
-        system.register(input("Name: "), input("Email: "), input("Pass: "))
-        input("Press Enter...")
+    if choice == "1":
+        name = input("Name: ")
+        email = input("Email: ")
+        password = input("Password: ")
+        system.add_user(name, email, password)
+        input("Press Enter to continue...")
 
-    elif c == "2":
-        current_user = system.login(input("Email: "), input("Pass: "))
-        input("Press Enter...")
+    elif choice == "2":
+        email = input("Email: ")
+        password = input("Password: ")
+        current_user = system.login(email, password)
+        input("Press Enter to continue...")
 
-    elif c == "3":
+    elif choice == "3":
         system.show_vehicles()
-        input("Press Enter...")
+        input("Press Enter to continue...")
 
-    elif c == "4":
-        if current_user:
+    elif choice == "4":
+        if current_user is None:
+            print("Please login first.")
+            input("Press Enter to continue...")
+        else:
             system.show_vehicles()
-            i = int(input("Choose car: ")) - 1
-            d = int(input("Days: "))
-            r = current_user.reserve(system.vehicles[i], d)
-            system.reservations.append(r)
-            print(f"Reserved! Total: {r.total}€")
-        else:
-            print("!!!Login first!!!")
-        input("Press Enter...")
+            pick = int(input("Pick a car (number): ")) - 1
+            days = int(input("How many days: "))
+            vehicle = system.vehicles[pick]
+            r = Reservation(current_user, vehicle, days)
+            current_user.add_reservation(r)
+            system.add_reservation(r)
+            print(f"Booked! Total cost: {r.total}€")
+            input("Press Enter to continue...")
 
-    elif c == "5":  
-        if current_user:
+    elif choice == "5":
+        if current_user is None:
+            print("Please login first.")
+            input("Press Enter to continue...")
+        else:
             current_user.show_reservations()
-        else:
-            print("!!!Login first!!!")
-        input("Press Enter...")
+            input("Press Enter to continue...")
 
-    elif c == "6":
-        system.save()
-        input("Press Enter...")
+    elif choice == "6":
+        system.save_to_file()
+        input("Press Enter to continue...")
 
-    elif c == "7":
+    elif choice == "7":
+        system.load_from_file()
+        input("Press Enter to continue...")
+
+    elif choice == "8":
+        print("Goodbye!")
         break
