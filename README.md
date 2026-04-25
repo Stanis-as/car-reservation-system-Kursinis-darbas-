@@ -1,127 +1,144 @@
 # Car Reservation System
 
-Tai Python kalba parašyta automobilių nuomos programa, sukurta kaip objektinio programavimo (OOP) kursinis darbas. Programa leidžia vartotojams registruotis, prisijungti, peržiūrėti automobilius bei atlikti jų rezervaciją, išsaugant duomenis faile.
+Automobilių nuomos programa parašyta Python kalba kaip OOP kursinis darbas.
 
 ---
 
-## 1. Įvadas (Introduction)
+## 1. Įvadas
 
-### Projekto tikslas
-Sukurti veikiančią automobilių nuomos valdymo sistemą, kuri pademonstruotų keturis pagrindinius OOP polarius, projektavimo šablonų naudojimą bei duomenų valdymą išoriniuose failuose.
+### Apie programą
+Ši programa leidžia vartotojams registruotis, prisijungti, peržiūrėti automobilius ir juos rezervuoti. Rezervacijų duomenys išsaugomi į tekstinį failą.
 
-### Kaip paleisti programą?
-1. Įsitikinkite, kad kompiuteryje įdiegtas **Python 3.x**.
-2. Atsisiųskite projekto failus į vieną aplanką.
-3. Atidarykite terminalą tame aplanke ir paleiskite:
-   ```bash
-   python Car_reservation.py
-   ```
-### Kaip naudotis programa?
-1. Registracija/Prisijungimas: Norėdami rezervuoti automobilį, pirmiausia turite užsiregistruoti (1) ir prisijungti (2).
-2. Peržiūra: Galite peržiūreti visų galimų automobilių sąrašą (3).
-3. Rezervacija: Prisijungę pasirinkite "Rent Car" (4), nurodykite automobilio numerį ir nuomos dienų skaičių.
-4. Išsaugojimas: Pasirinkus "save" (6), visis rezervacijų duomenys bus įrašyti į `data.txt` failą.
+### Kaip paleisti?
+1. Įsitikinkite kad įdiegtas **Python 3.x**
+2. Atsisiųskite failus į vieną aplanką
+3. Terminale paleiskite:
+```bash
+python Car_reservation.py
+```
 
-## 2. Analizė ir Įgyvendinimas (Body/Analysis)
+### Kaip naudotis?
+- Pirmiausia **užsiregistruokite** (1) ir **prisijunkite** (2)
+- Peržiūrėkite automobilius (3)
+- Rezervuokite pasirinktą automobilį (4) ir nurodykite dienų skaičių
+- Išsaugokite duomenis (6) — jie bus įrašyti į `data.txt`
+- Galite peržiūrėti išsaugotus duomenis pasirinkę (7)
 
-### 1. **Enkapsuliacija (Encapsulation)**
-Reikšmė: Duomenų slėpimas klasės viduje, apsaugant juos nuo tiesioginio pasiekiamumo iš išorės.
-   ```python
-   class User:
+---
+
+## 2. OOP Principų Įgyvendinimas
+
+### Enkapsuliacija
+Duomenys slepiami klasės viduje naudojant apsaugotus atributus su `_` ženklu. Tiesiogiai iš išorės jų pasiekti negalima.
+
+```python
+class User:
     def __init__(self, name, email, password):
         self._name = name
         self._email = email
         self._password = password
-   ```
-### 2. **Paveldėjimas (Inheritance)**
-Reikšmė: Galimybė kurti naujas klases esamų klasių pagrindu, perimant jų savybes ir metodus.
- ```python
-   class Car(Vehicle):
+```
+
+### Paveldėjimas
+`Car` ir `LuxuryCar` klasės paveldi iš `Vehicle` klasės — perima jos atributus ir metodus.
+
+```python
+class Car(Vehicle):
     def get_price(self, days):
         return self._price * days
 ```
-### 3. **Abstrakcija (Abstraction)**
-Reikšmė: Sudėtingos detalės paslepiamos apibrėžiant tik bendrą metodų struktūrą per abstrakčias klases.
- ```python
-   class Vehicle(ABC):
+
+### Abstrakcija
+`Vehicle` yra abstrakti klasė. Ji apibrėžia metodą `get_price()` bet neįgyvendina jo — tai palieka klasėms `Car` ir `LuxuryCar`.
+
+```python
+class Vehicle(ABC):
     @abstractmethod
     def get_price(self, days):
         pass
 ```
-### 4. **Polimorfizmas (Polymorphism)**
- Reikšmė: Skirtingos klasės gali turėti tą patį metodą, tačiau jį įgyvendinti skirtingai.
 
- Šiame projekte metodas `get_price()` realizuojamas skirtingai:
+### Polimorfizmas
+Tas pats metodas `get_price()` veikia skirtingai priklausomai nuo klasės:
+- `Car` — kaina × dienos
+- `LuxuryCar` — ta pati formulė bet su 10% nuolaida nuo 3 dienų
 
-- `Car` klasėje kaina skaičiuojama paprastai (kaina × dienos)
-- `LuxuryCar` klasėje taikoma 10% nuolaida, jei nuoma trunka 3 dienas ar ilgiau
+```python
+class LuxuryCar(Vehicle):
+    def get_price(self, days):
+        total = self._price * days
+        if days >= 3:
+            total = total * 0.9
+        return total
+```
 
-Tai leidžia naudoti tą patį metodą skirtingiems objektams, nekeičiat programos logikos.
+---
 
-### **Projektavimo šablonas (Design Pattern)**
-Projekte panaudotas Singleton (Vienis) šablonas klasėje `System`.
-1. **Kodėl šis šablonas?** Sistemoje turi egzistuoti tik vienas centralizuotas objektas, atsakingas už vartotojų sąrašą, automobilių parką ir rezervacijas. Singleton užtikrina, kad visoje programoje veiktų tas pats duomenų srautas.
-2. **Veikimas:** Perrašius `__new__` metodą, užtikrinama, kad sukūrus naują `System()` objektą, bus grąžinta ta pati jau egzistuojanti egzemplioriaus nuoroda.
+### Projektavimo Šablonas — Singleton
+`System` klasė naudoja Singleton šabloną. Tai reiškia kad visoje programoje egzistuoja tik vienas `System` objektas su visais duomenimis.
 
-### **Kompozicija ir Agregacija**
-1. **Kompozicija:** `Reservation` objektas turi `Vehicle` ir `User` objektus. Rezervacija yra tiesiogiai priklausoma nuo šių dalių, kad apskaičiuotų galutinę kainą (total).
-2. **Agregacija:** `System` klasė turi `users` ir `vehicles` sąrašus. Tai yra agregacija, nes automobiliai ir vartotojai gali egzistuoti nepriklausomai nuo pačios sistemos veikimo loginės sesijos.
+```python
+class System:
+    _instance = None
 
-### **Darbas su failais (File Handling)**
-Programa naudoja Python funkcijas darbui su failais.
-1. Duomenys rašomi į `data.txt`.
-2. Išsaugoma: Vartotojo vardas, automobilis, nuomos trukmė ir bendra suma.
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+```
 
-### Testavimas (Testing)
-Programoje buvo naudojamas testavimas su Python standartine biblioteka `unittest`, siekiant patikrinti pagrindinį funkcionalumą ir užtikrinti programos patikimumą.
+Šis šablonas tinkamas nes sistema turi turėti vieną bendrą vartotojų, automobilių ir rezervacijų sąrašą.
 
-Testavimo metu buvo tikrinamos svarbiausios sistemos dalys:
+---
 
-1. **Prisijungimo funkcionalumas**  
-Patikrinama, ar vartotojas gali sėkmingai prisijungti su teisingais duomenimis ir ar sistema atmeta neteisingus prisijungimus.
+### Kompozicija ir Agregacija
+- **Kompozicija** — `Reservation` objektas negali egzistuoti be `User` ir `Vehicle`. Jis juos naudoja kainai apskaičiuoti.
+- **Agregacija** — `System` laiko `users` ir `vehicles` sąrašus, tačiau šie objektai gali egzistuoti nepriklausomai.
 
-2. **Kainos skaičiavimas (Polimorfizmas)**  
-   Testuojama, ar skirtingų klasių (`Car` ir `LuxuryCar`) metodas `get_price()` veikia teisingai:
-   - `Car` klasėje kaina skaičiuojama paprastai (kaina × dienos)
-   - `LuxuryCar` klasėje taikoma nuolaida, jei dienų skaičius ≥ 3
+---
 
-3. **Rezervacijos sukūrimas**  
-   Tikrinama, ar sukuriant rezervaciją teisingai apskaičiuojama bendra kaina ir ar rezervacija priskiriama vartotojui.
+### Darbas su Failais
+Duomenys išsaugomi į `data.txt` failą ir gali būti vėliau nuskaitomi atgal.
 
-4. **Singleton šablono veikimas**  
-   Patikrinama, ar sukūrus kelis `System` objektus, jie visi nurodo į tą patį egzempliorių.
+Išsaugoma: vartotojo vardas, automobilis, dienų skaičius, bendra suma.
 
+---
 
-Testai buvo vykdomi naudojant komandą:
+### Testavimas
+Naudojamas `unittest` framework'as. Testuojamos pagrindinės funkcijos:
+
+1. Prisijungimas su teisingais ir neteisingais duomenimis
+2. `Car` kainos skaičiavimas
+3. `LuxuryCar` nuolaidos skaičiavimas
+4. Rezervacijos sukūrimas
+5. Singleton šablono veikimas
 
 ```bash
 python -m unittest test_system.py
 ```
-## 3. Results and Summary
 
-### Results
-- Programa sėkmingai įgyvendina automobilių nuomos funkcionalumą: vartotojai gali registruotis, prisijungti ir rezervuoti automobilius.
-- Kilo problemų su failų išsaugojimu ir teisingo kelio (path) nustatymu.
-- Įgyvendintas Singleton projektavimo šablonas, kuris užtikrina vieną sistemos instanciją.
-- Testavimo metu teko koreguoti kai kurias funkcijas, kad jos veiktų stabiliai.
-- Sukurti ir paleisti vienetiniai testai, kurie patvirtina pagrindinių funkcijų teisingą veikimą.
+---
 
-### Conclusions
-Šio darbo metu buvo sukurta veikianti automobilių nuomos sistema, pritaikant objektinio programavimo principus praktikoje.
+## 3. Rezultatai ir Išvados
 
-Buvo sėkmingai įgyvendinti visi keturi OOP principai: enkapsuliacija, paveldėjimas, abstrakcija ir polimorfizmas. Taip pat pritaikytas Singleton projektavimo šablonas.
+### Rezultatai
+- Programa veikia — vartotojai gali registruotis, prisijungti ir rezervuoti automobilius
+- Singleton šablonas užtikrina vieną sistemos instanciją per visą programos veikimą
+- Failų skaitymas ir rašymas veikia su `data.txt`
+- Visi `unittest` testai sėkmingai praeina
 
-Programa leidžia vartotojams registruotis, prisijungti, rezervuoti automobilius ir išsaugoti duomenis faile.
+### Išvados
+Kursiniam darbui pavyko sukurti veikiančią automobilių nuomos sistemą naudojant OOP principus. Įgyvendinti visi keturi principai, Singleton šablonas ir failų valdymas.
 
-Papildomai buvo įgyvendintas testavimas naudojant `unittest`, kuris padėjo patikrinti pagrindinių funkcijų veikimą. 
+Ateityje sistemą būtų galima patobulinti:
+- Naudoti duomenų bazę vietoje tekstinio failo
+- Pridėti slaptažodžių šifravimą
+- Sukurti administratoriaus funkciją
+- Panauduoti dar viena Projektavimo šablona
 
-Ateityje šią sistemą būtų galima tobulinti:
-- naudojant duomenų bazę vietoje tekstinio failo
-- įdiegiant saugesnį slaptažodžių saugojimą
-- pridedant daugiau funkcionalumo, pvz., administratoriaus valdymo sistemą
+---
 
-## 4. References
-
-- Python Documentation
-- unittest documentation
-- Lecture materials
+## 4. Šaltiniai
+- Python dokumentacija — https://docs.python.org
+- unittest dokumentacija — https://docs.python.org/3/library/unittest.html
+- Paskaitų medžiaga
