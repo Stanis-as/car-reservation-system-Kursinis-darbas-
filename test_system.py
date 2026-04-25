@@ -2,31 +2,45 @@ import unittest
 from Car_reservation import User, Car, LuxuryCar, Reservation, System
 
 
-class TestSystem(unittest.TestCase):
-
-    def test_login(self):
-        user = User("Jonas", "jonas@mail.com", "1234")
-        self.assertTrue(user.check_login("jonas@mail.com", "1234"))
-        self.assertFalse(user.check_login("wrong", "1234"))
+class TestCar(unittest.TestCase):
 
     def test_car_price(self):
-        car = Car("BMW", "320", 50)
-        self.assertEqual(car.get_price(2), 100)
+        car = Car("Toyota", "Corolla", 45)
+        self.assertEqual(car.get_price(2), 90)
 
-    def test_luxury_discount(self):
+    def test_luxury_no_discount(self):
         car = LuxuryCar("Mercedes", "S", 100)
-        self.assertEqual(car.get_price(3), 270)  # 10% discount
+        self.assertEqual(car.get_price(2), 200)
 
-    def test_reservation(self):
-        user = User("Jonas", "a", "b")
+    def test_luxury_with_discount(self):
+        car = LuxuryCar("Mercedes", "S", 100)
+        self.assertEqual(car.get_price(3), 270)
+
+
+class TestUser(unittest.TestCase):
+
+    def test_login_correct(self):
+        user = User("Jonas", "jonas@mail.com", "1234")
+        self.assertTrue(user.check_login("jonas@mail.com", "1234"))
+
+    def test_login_wrong(self):
+        user = User("Jonas", "jonas@mail.com", "1234")
+        self.assertFalse(user.check_login("jonas@mail.com", "wrongpass"))
+
+    def test_reservation_added(self):
+        user = User("Jonas", "jonas@mail.com", "1234")
         car = Car("BMW", "320", 50)
         r = Reservation(user, car, 2)
-        self.assertEqual(r.total, 100)
+        user.add_reservation(r)
+        self.assertEqual(len(user._reservations), 1)
 
-    def test_singleton(self):
+
+class TestSingleton(unittest.TestCase):
+
+    def test_same_instance(self):
         s1 = System()
         s2 = System()
-        self.assertTrue(s1 is s2)
+        self.assertIs(s1, s2)
 
 
 if __name__ == "__main__":
