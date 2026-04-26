@@ -1,8 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 
-
-class Vehicle(ABC): # Abstraction - abstract class Vehicle
+class Vehicle(ABC): # Abstraction - Vehicle is an abstract class
     def __init__(self, brand, model, price):
         self._brand = brand   # Encapsulation - protected attributes
         self._model = model
@@ -42,7 +41,7 @@ class User:
     def get_name(self):
         return self._name
 
-    def add_reservation(self, reservation):
+    def add_reservation(self, reservation): 
         self._reservations.append(reservation)
 
     def show_reservations(self):
@@ -62,8 +61,7 @@ class Reservation: # Composition
         self.total = vehicle.get_price(days)
 
 
-# Singleton pattern - only one System can exist
-class System:
+class System: # Singleton pattern - only one System can exist
     _instance = None
 
     def __new__(cls):
