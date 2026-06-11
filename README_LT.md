@@ -1,5 +1,7 @@
 # Car Reservation System
 
+🇬🇧 English version: [README.md](README.md)
+
 Automobilių nuomos programa parašyta Python kalba kaip OOP kursinis darbas.
 
 ---
